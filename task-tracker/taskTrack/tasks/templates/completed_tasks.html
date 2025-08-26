@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .task-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            width: 500px;
+            margin-top: 2rem;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-bottom: 15px;
+            text-decoration: none;
+            color: #4CAF50;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .task-item {
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+
+        .task-item h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .task-meta {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .task-item a {
+            font-size: 0.9rem;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .task-item a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="task-container">
+        <h2>Your Tasks</h2>
+        <a href="{% url 'tasks' %}" class="back-link">← Back to Tasks</a>
+
+        <div class="task-list">
+            {% for task in tasks %}
+            <div class="task-item">
+                <h3>{{ task.title }}</h3>
+                <p>{{ task.description }}</p>
+                <div class="task-meta">
+                    Due: {{ task.due_date }} | Category: {{ task.category }}
+                </div>
+                <a href="{% url 'mark_completed' task.id %}">Mark Completed</a>
+            </div>
+            {% empty %}
+            <p>No tasks found.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>

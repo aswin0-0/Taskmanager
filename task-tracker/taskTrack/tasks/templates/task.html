@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f9fafb;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Form Styling */
+        form {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        form .full-width {
+            grid-column: 1 / 3;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        /* Filter Dropdown */
+        .filter {
+            margin: 1.5rem 0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        /* Task List */
+        .task-list {
+            margin-top: 1.5rem;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .task-card {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 6px solid;
+        }
+
+        .task-card.work { border-color: #f59e0b; }
+        .task-card.groceries { border-color: #10b981; }
+        .task-card.study { border-color: #3b82f6; }
+        .task-card.personal { border-color: #ec4899; }
+
+        .task-card h3 {
+            margin-bottom: 0.3rem;
+            color: #111827;
+        }
+
+        .task-card p {
+            font-size: 0.9rem;
+            color: #4b5563;
+        }
+
+        .task-meta {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Task Manager</h1>
+
+    <hr>
+
+    <div class="container">
+        <!-- Task Form -->
+        <form method="POST" action="{% url 'tasks' %}">
+            {% csrf_token %}
+            
+            <div>
+                <label for="title">Task Title</label>
+                <input type="text" id="title" name="title" placeholder="Enter task title" required>
+            </div>
+
+            <div>
+                <label for="due_date">Due Date</label>
+                <input type="date" id="due_date" name="due_date" required>
+            </div>
+
+            <div class="full-width">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3" placeholder="Enter task description" required></textarea>
+            </div>
+
+            <div>
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="Work">Work</option>
+                    <option value="Groceries">Groceries</option>
+                    <option value="Study">Study</option>
+                    <option value="Personal">Personal</option>
+                </select>
+            </div>
+
+            <div>
+                <label>&nbsp;</label>
+                <button type="submit">Add Task</button>
+            </div>
+        </form>
+
+        <!-- Filter, Sorting & Search Section -->
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+
+            <!-- Search Bar -->
+            <form method="GET" style="flex: 1; display: flex;">
+                <input type="text" name="search" placeholder="Search tasks..." value="{{ request.GET.search }}" 
+                    style="padding: 6px; border: 1px solid #ccc; border-radius: 6px; width: 100%;">
+            </form>
+
+            <!-- Category Filter -->
+            <form method="GET" style="display: flex; align-items: center; gap: 0.5rem;">
+                <select name="filter" onchange="this.form.submit()" style="padding: 6px; border-radius: 6px;">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}" {% if request.GET.filter == category %}selected{% endif %}>
+                            {{ category }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <!-- Sorting -->
+            <form method="GET" style="display: flex; align-items: center; gap: 0.5rem;">
+                <select name="sort" onchange="this.form.submit()" style="padding: 6px; border-radius: 6px;">
+                    <option value="">Sort By</option>
+                    <option value="due_date" {% if request.GET.sort == 'due_date' %}selected{% endif %}>Due Date</option>
+                    <option value="-due_date" {% if request.GET.sort == '-due_date' %}selected{% endif %}>Due Date (Desc)</option>
+                </select>
+            </form>
+
+        </div>
+
+
+
+
+    
+        <div style="margin-bottom: 1rem; text-align: right;">
+            <a href="{% url 'completed_tasks' %}" 
+            style="color: white; background: #6b7280; padding: 6px 10px; border-radius: 6px; text-decoration: none;">
+            View Completed Tasks
+            </a>
+        </div>
+
+
+        <!-- Task List -->
+        <div class="task-list">
+            {% for task in tasks %}
+            <div class="task-card {{ task.category|lower }}">
+                <h3>{{ task.title }}</h3>
+                <p>{{ task.description }}</p>
+                <div class="task-meta">
+                    Due: {{ task.due_date }} | Category: {{ task.category }}
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="margin-top: 0.5rem; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <!-- Mark Completed -->
+                    {% if not task.completed %}
+                    <a href="{% url 'mark_completed' task.id %}" 
+                    style="color: white; background: #10b981; padding: 6px 10px; border-radius: 6px; text-decoration: none;">
+                    Mark Completed
+                    </a>
+                    {% endif %}
+
+                    <!-- Edit Task -->
+                    <a href="{% url 'edit_task' task.id %}" 
+                    style="color: white; background: #3b82f6; padding: 6px 10px; border-radius: 6px; text-decoration: none;">
+                    Edit
+                    </a>
+
+                    <!-- Delete Task -->
+                    <a href="{% url 'delete_task' task.id %}" 
+                    style="color: white; background: #ef4444; padding: 6px 10px; border-radius: 6px; text-decoration: none;"
+                    onclick="return confirm('Are you sure you want to delete this task?');">
+                    Delete
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <p>No tasks found.</p>
+            {% endfor %}
+        </div>
+
+
+</body>
+</html>
